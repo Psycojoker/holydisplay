@@ -1,0 +1,59 @@
+#!/usr/bin/python
+# -*- coding:Utf-8 -*-
+
+import urwid
+import sys
+import holygrail
+
+top = None
+sav = []
+palette = [('header', 'light gray', 'black'), ('reveal focus', 'black', 'dark cyan', 'standout'),]
+
+grail = holygrail.Grail()
+
+def display():
+    global top
+    global sav
+    todos = []
+    super_main_view = grail.super_main_view(unactive=False)
+    pouet = False
+    if super_main_view != sav:
+        sav = super_main_view
+        for i in super_main_view:
+            if type(i[0]) is str:
+                todos.append(urwid.AttrMap(urwid.Text(('header', i[0])), None, 'header'))
+            else:
+                todos.append(urwid.AttrMap(urwid.Text(('header', i[0].description)), None, 'header'))
+            for j in i[1]:
+                todos.append(urwid.Text("    " + j.description + " %s" % ("[%s]" % j.quest.description if j.quest else "")))
+            break
+            todos.append(urwid.Divider(" "))
+        content = urwid.SimpleListWalker(todos)
+        listbox = urwid.ListBox(content)
+        top = urwid.Frame(listbox)
+
+def re_display(loop, _):
+    display()
+    loop.set_alarm_in(3, re_display)
+    global top
+    global top
+    loop.widget = top
+
+def inputs(input, raw):
+    if len(input) > 0 and input[0] == "q":
+        sys.exit(0)
+    display()
+
+def exit_on_cr(input):
+    if input == 'enter':
+        raise urwid.ExitMainLoop()
+
+if __name__ == "__main__":
+    display()
+    global loop
+    loop = urwid.MainLoop(top, palette,
+        input_filter=inputs, unhandled_input=exit_on_cr)
+    loop.set_alarm_in(3, re_display, loop)
+    loop.run()
+
+# vim:set shiftwidth=4 tabstop=4 expandtab:
